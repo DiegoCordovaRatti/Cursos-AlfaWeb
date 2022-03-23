@@ -5,8 +5,12 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    cursosDB: [],
   },
   mutations: {
+    FETCH_CURSOS(state, cursos){
+      state.cursosDB = cursos
+    }
   },
   actions: {
   },
