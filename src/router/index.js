@@ -11,29 +11,28 @@ const routes = [
     component: Home
   },
   {
-    path: '/signin',
-    name: 'SignIn',
-    component: () => import('../views/SignIn.vue')
-  },
-  {
-    path: '/login',
-    name: 'LogIn',
-    component: () => import('../views/LogIn.vue')
-  },
-  {
     path: '/cursos',
     name: 'Cursos',
-    component: () => import('../views/Cursos.vue')
+    component: () => import('../views/Cursos.vue'),
+    meta: {
+      ingresar: true,
+    },
   },
   {
     path: '/administracion',
     name: 'Administracion',
-    component: () => import('../views/Administracion.vue')
+    component: () => import('../views/Administracion.vue'),
+    meta: {
+      ingresar: true,
+    },
   },
   {
-    path: '/editar',
+    path: '/editar/:id',
     name: 'EditarCurso',
-    component: () => import('../views/EditarCurso.vue')
+    component: () => import('../views/EditarCurso.vue'),
+    meta: {
+      ingresar: true,
+    },
   },
 ]
 
@@ -42,5 +41,6 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes
 })
+
 
 export default router

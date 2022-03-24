@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-data-table :headers="headers" :items="desserts" sort-by="calories" class="elevation-1" data-app>
+        <v-data-table :headers="headers" :items="getDB" sort-by="calories" class="elevation-1" data-app>
             <template v-slot:top>
                 <v-toolbar flat>
                     <v-toolbar-title>My CRUD</v-toolbar-title>
@@ -14,9 +14,8 @@
                         </template>
                         <v-card>
                             <v-card-title>
-                                <span class="text-h5">{{ formTitle }}</span>
+                                <span class="text-h5">Agregar Curso Nuevo</span>
                             </v-card-title>
-
                             <v-card-text>
                                 <v-container>
                                     <v-form ref="form" @submit.prevent="addCursos()" v-model="valid" lazy-validation>
@@ -52,58 +51,44 @@
                             </v-card-text>
                         </v-card>
                     </v-dialog>
-                    <v-dialog v-model="dialogDelete" max-width="500px">
-                        <v-card>
-                            <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
-                            <v-card-actions>
-                                <v-spacer></v-spacer>
-                                <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
-                                <v-btn color="blue darken-1" text @click="deleteItemConfirm">OK</v-btn>
-                                <v-spacer></v-spacer>
-                            </v-card-actions>
-                        </v-card>
-                    </v-dialog>
                 </v-toolbar>
             </template>
-            <template v-slot:item.actions="{ item }">
-                <v-icon small class="mr-2" @click="editItem(item)">
-                    mdi-pencil
-                </v-icon>
-                <v-icon small @click="deleteItem(item)">
+            <template v-slot:item.actions="{item}">
+                <router-link :to="`/editar/${item.id}`">
+                    <v-icon small class="mr-2">
+                        mdi-pencil
+                    </v-icon>
+                </router-link>
+                <v-icon small @click="deleteCurso(item)">
                     mdi-delete
                 </v-icon>
-            </template>
-            <template v-slot:no-data>
-                <v-btn color="primary">
-                    Reset
-                </v-btn>
             </template>
         </v-data-table>
         <div>
             <v-alert dense outlined type="purple">
-                Cantidad total de alumnos permitidos: <strong>???</strong> alumnos
+                Cantidad total de alumnos permitidos: <strong>{{ sumarCupos }}</strong> alumnos
             </v-alert>
             <v-alert dense outlined type="light-blue">
-                Cantidad total de alumnos inscritos: <strong>???</strong> alumnos
+                Cantidad total de alumnos inscritos: <strong>{{ sumarInscritos }}</strong> alumnos
             </v-alert>
             <v-alert dense outlined type="red">
-                Cantidad total de cupos restantes: <strong>???</strong> alumnos
+                Cantidad total de cupos restantes: <strong>{{ cursosRestantes }}</strong> alumnos
             </v-alert>
             <v-alert dense outlined type="pink">
-                Cantidad total de cursos terminados: <strong>???</strong> cursos
+                Cantidad total de cursos terminados: <strong>{{ sumarTerminados }}</strong> cursos
             </v-alert>
             <v-alert dense outlined type="brown">
-                Cantidad total de cursos activos: <strong>???</strong> cursos
+                Cantidad total de cursos activos: <strong>{{ sumarActivos }}</strong> cursos
             </v-alert>
             <v-alert dense outlined type="orange">
-                Cantidad total de cursos: <strong>???</strong> cursos
+                Cantidad total de cursos: <strong>{{ totalCursos }}</strong> cursos
             </v-alert>
         </div>
     </div>
 </template>
 
 <script>
-import { addDoc } from '@firebase/firestore'
+import { addDoc, doc, deleteDoc } from '@firebase/firestore'
 import cursosCollection from '../firestore'
     export default {
         data: () => ({
@@ -136,16 +121,12 @@ import cursosCollection from '../firestore'
                 },
                 {
                     text: 'Duración',
+                    sortable: false,
                     value: 'duracion'
                 },
                 {
                     text: 'Costo',
                     value: 'costo'
-                },
-                {
-                    text: 'Actions',
-                    value: 'actions',
-                    sortable: false
                 },
                 {
                     text: 'Actions',
@@ -169,44 +150,6 @@ import cursosCollection from '../firestore'
         },
 
         methods: {
-            initialize() {
-                this.desserts = [{
-                        name: 'Frozen Yogurt',
-                        calories: 159,
-                        fat: 6.0,
-                        carbs: 24,
-                        protein: 4.0,
-                    },
-                    {
-                        name: 'Ice cream sandwich',
-                        calories: 237,
-                        fat: 9.0,
-                        carbs: 37,
-                        protein: 4.3,
-                    },
-                    {
-                        name: 'Eclair',
-                        calories: 262,
-                        fat: 16.0,
-                        carbs: 23,
-                        protein: 6.0,
-                    },
-                    {
-                        name: 'Cupcake',
-                        calories: 305,
-                        fat: 3.7,
-                        carbs: 67,
-                        protein: 4.3,
-                    },
-                ]
-            },
-
-            editItem(item) {
-                this.editedIndex = this.desserts.indexOf(item)
-                this.editedItem = Object.assign({}, item)
-                this.dialog = true
-            },
-
             deleteItem(item) {
                 this.editedIndex = this.desserts.indexOf(item)
                 this.editedItem = Object.assign({}, item)
@@ -239,6 +182,60 @@ import cursosCollection from '../firestore'
                 alert('El curso a sido agregado')
                 this.$router.push("/")
             },
+            async deleteCurso(item){
+                const itemId = item.id
+                let userRef = doc(cursosCollection, itemId);
+                await deleteDoc(userRef)
+                alert ("El curso ha sido eleminado")
+                this.$router.go()
+
+            },
         },
+        computed:{
+            getDB(){
+                return this.$store.state.cursosDB
+            },
+            sumarCupos(){
+                let sumarCupos = 0
+                this.getDB.forEach(cupo => {
+                    sumarCupos = sumarCupos + +(cupo.cupos)
+                });
+                return sumarCupos
+            },
+            sumarInscritos(){
+                let sumarInscritos = 0
+                this.getDB.forEach(cupo => {
+                    sumarInscritos = sumarInscritos + +(cupo.inscritos)
+                });
+                return sumarInscritos
+            },
+            cursosRestantes(){
+                return this.sumarCupos - this.sumarInscritos
+            },
+            sumarTerminados(){
+                let sumarTerminados = 0
+                this.getDB.forEach(terminado => {
+                    if(terminado.estado === true){
+                        sumarTerminados++
+                    }
+                });
+                return sumarTerminados
+            },
+            sumarActivos(){
+                let sumarActivos = 0
+                this.getDB.forEach(activo => {
+                    const estado = activo.estado
+                    if(estado === false){
+                        sumarActivos++
+                    }
+                });
+                return sumarActivos
+            },
+
+            totalCursos(){
+                return this.getDB.length
+            },
+        }
+        // Cantidad total de cursos
     }
-</script>
+</script> 

@@ -1,7 +1,7 @@
 <template>
     <div>
         <h1>Editando el curso : ???</h1>
-        <v-form ref="form" v-model="valid" lazy-validation>
+        <v-form @submit.prevent="updateCurso(item)" ref="form" v-model="valid" lazy-validation>
             <v-text-field v-model="nombre" label="Nombre del curso" type="name" :counter="20" required></v-text-field>
             <v-text-field v-model="url" label="URL de imagen del curso" type="url" required></v-text-field>
             <v-text-field v-model="cupos" label="Cupos del curso" type="number" required></v-text-field>
@@ -17,7 +17,7 @@
             </v-container>
             <v-checkbox v-model="checkbox" :rules="[v => !!v || '¡Necesita validar su respuesta!']"
                 label="Marque para validar" required></v-checkbox>
-            <v-btn :disabled="!valid" color="success" class="mr-4" @click="validate">
+            <v-btn :disabled="!valid" color="success" class="mr-4" @click="Actualizar">
                 Actualizar
             </v-btn>
             <v-btn color="error" class="mr-4" @click="reset">
@@ -47,7 +47,7 @@
             checkbox: false,
         }),
         methods: {
-            validate() {
+            Actualizar() {
                 this.$refs.form.validate()
             },
             reset() {
