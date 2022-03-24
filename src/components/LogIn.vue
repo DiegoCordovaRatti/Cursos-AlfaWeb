@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex';
 import {signInWithEmailAndPassword} from "firebase/auth";
 import auth from '../authentification'
 export default {
@@ -41,12 +42,15 @@ export default {
     },
 
     methods: {
+        ...mapMutations(['LOG_OUT']),
         async signIn() {
             const email = this.user.email
             const password = this.user.password
             await signInWithEmailAndPassword(auth, email, password)
             alert(`Bienvenido, ${email}`)
-            this.$router.push("/")
+            const showBtn = true
+            this.$store.commit('LOG_OUT', showBtn)
+            this.$router.push("/cursos")
         },
         reset() {
             this.$refs.form.reset()

@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+import auth from '../authentification'
+
 
 Vue.use(VueRouter)
 
@@ -42,5 +44,16 @@ const router = new VueRouter({
   routes
 })
 
+router.beforeEach((to, from, next) => {
+  let email = auth.currentUser;
+  let authRequired = to.matched.some((route) => route.meta.ingresar);
+  if (!email && authRequired) {
+    next("/");
+  } else if (email && !authRequired) {
+    next("Cursos");
+  } else {
+    next();
+  }
+});
 
 export default router
